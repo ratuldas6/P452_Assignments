@@ -1,3 +1,119 @@
+import numpy as np
+
+#----------------------------------------------------------------------------------------------------
+#General function set
+def integerRound(x):
+    from math import floor, ceil
+    a = floor(x)
+    b = ceil(x)
+    if x-a<=.1:
+        result = a
+    elif b-x<=.1:
+        result = b
+    else:
+        print("Please apply the function to a smaller difference")
+    return result
+
+def dec2Round(x): #rounds a number up to2 decimal places
+    y = 100*x
+    remainder = y%1
+    y = y - remainder
+    if remainder > 0.1:
+        modified_digit = 1
+    else:
+        modified_digit = 0
+    y = y + modified_digit
+    y = y/100
+    return y
+
+def sumAP(a,d,n): #finds sum of an arithmetic progression upto n terms
+    """
+    a : first term of AP
+    d : difference between terms of AP
+    n : number of terms in AP
+    """
+    n = float(n)
+    if n >= 1 and float(n)==int(n):
+        n = int(n)    # Alotting specific data types
+        a = float(a)
+        d = float(d)
+        sum_terms = 0
+        for i in range(1,n+1):
+            sum_terms += a
+            a += d
+        return sum_terms
+    else:
+        print("Invalid input. Please enter an integer for n!")
+        return None
+    
+def sumGP(a,r,n): #finds sum of a geometric progression upto n terms
+    """
+    a : first term of AP
+    d : difference between terms of AP
+    n : number of terms in AP
+    """
+    n = float(n)
+    if n >= 1 and float(n)==int(n):
+        n = int(n)
+        a = float(a)
+        r = float(r)
+        sum_g = 0
+        for i in range(1,n+1):
+            sum_g += a
+            a = a*r
+        return sum_g
+    else:
+        print("Invalid input. Please enter an integer for n!")
+        return None
+    
+def sumHP(a,d,n): #finds sum of a harmonic progression upto n terms
+    n = float(n)
+    if n >= 1 and float(n)==int(n):
+        n = int(n)
+        a = float(a)
+        d = float(d)
+        sum_h = 0
+        for i in range(1,n+1):
+            a = 1/a
+            sum_h += a
+            a = 1/a
+            a = a + d     
+        return sum_h
+    else:
+        print("Invalid Input!")
+        return None
+    
+def derivative(f, n, x, h=1e-3): #derivative finder
+    #n decides 1st or 2nd order derivative of f(x)
+    if int(n)==1:   #at x; h is the tolerance value
+        d1f = round((f(x+h)-f(x))/h,2)
+        return d1f
+    elif int(n)==2:
+        d2f = round((f(x+h)+f(x-h)-2*f(x))/(h**2),2)
+        return d2f
+
+def dfdx_sym(P, n, x, dx = 10**(-6)):                                   # symmetric derivative of Legendre polynomials
+    return (P(n, x + dx) - P(n, x - dx))/(2 * dx)
+
+def P(n, x):
+    # for defining Legendre polynomial
+    if n < 0:
+        print("provide positive order of Legendre Polynomial Pn(x)!")
+        return None
+    elif n == 0:                                                        
+        return 1
+    elif n == 1:                                                        
+        return x
+    
+    func = ((2*n - 1)/n) * x * P(n-1, x) - ((n-1)/n) * P(n-2, x) 
+
+    return func
+
+def showConvergenceTable(steps, values):
+    print("# of iterations (i)     ","Absolute Error (|b-a|)\n")
+    for j in range(len(steps)):
+        print("        ", steps[j],"             ",values[j])
+
 #----------------------------------------------------------------------------------------------------
 #Root-finding function set
 def bracket(func, a, b): #defines the bracket
@@ -95,7 +211,7 @@ def regulafalsi(func, a, b, prec): #roots by Regula-Falsi method
             abs_err.append(abs(d-c))                
     return c, list_i, list_f_i, abs_err
 
-def newtonraphson(func,x_0,prec): #roots using Newton-Raphson method
+def newtonraphson(func, x_0, prec): #roots using Newton-Raphson method
     """
     f : function in question
     x_0 : Initial guess
@@ -106,12 +222,12 @@ def newtonraphson(func,x_0,prec): #roots using Newton-Raphson method
     abs_err = []
     if abs(func(x_0)) == 0:
         return x_0
-    x = x_0-func(x_0)/derivative(func, 1, x_0, prec*10**(-3))
+    x = x_0-func(x_0)/dfdx_sym(func, 1, x_0)
     while abs(x_0-x) > prec and i < 15:
         #loop until precision AND iteration requirement is met
         x = x_0
         #applying the formula for N-R method
-        x_0 = x_0 - func(x_0)/derivative(func, 1, x_0, prec)
+        x_0 = x_0 - func(x_0)/dfdx_sym(func, 1, x_0)
         if func(x_0) == 0:
             break
         i+=1
@@ -241,42 +357,17 @@ def Simpson(a,b,f,N):   #Simpson method for integration
             integral += 2*h*f(a + index*h)/3 #for even indices, weight = 2
     return integral
 
-def derivative(f, n, x, h=1e-3): #derivative finder
-    #n decides 1st or 2nd order derivative of f(x)
-    if int(n)==1:   #at x; h is the tolerance value
-        d1f = round((f(x+h)-f(x))/h,2)
-        return d1f
-    elif int(n)==2:
-        d2f = round((f(x+h)+f(x-h)-2*f(x))/(h**2),2)
-        return d2f
-
-def P(n, x):
-    # for defining Legendre polynomial
-    if n < 0:
-        print("provide positive order of Legendre Polynomial Pn(x)!")
-        return None
-    elif n == 0:                                                        
-        return 1
-    elif n == 1:                                                        
-        return x
-    
-    func = ((2*n - 1)/n) * x * P(n-1, x) - ((n-1)/n) * P(n-2, x) 
-
-    return func
-
 def gauss_quadrature(func, a, b, n, h):                              # Code for Gauss-Legendre Quadrature based definite integration
-    dxdt = (b - a)/2                                                    # defining interval scaling from [-1,1] to [a,b]
-
     guess_list = np.linspace(-1, 1, n)                                     # generating n partitions of interval [-1,1]
-    root_list = [newtonraphson(func, x, 1e-6) for x in guess_list]           # finding roots of Legendre polynomial by providing the equal partitions of [-1,1] to be guess values 
-    weight_list = [2/((1 - x**2) * (derivative(func, n, x, h))**2) for x in root_list]
+    root_list = [newtonraphson(P, x, 1e-6) for x in guess_list]           # finding roots of Legendre polynomial by providing the equal partitions of [-1,1] to be guess values 
+    weight_list = [2/((1 - x**2) * (dfdx_sym(P, n, x, h))**2) for x in root_list]
                                                                         # obtaining weight functions for each root of the Legendre polynmial
-    t_list = ((b - a)/2)*(array(root_list)) + (a + b)/2                 # scaling the interval [-1,1] to [a,b]
+    t_list = ((b - a)/2)*(np.array(root_list)) + (a + b)/2                 # scaling the interval [-1,1] to [a,b]
     sum = 0
     for i in range(len(weight_list)):
-        sum += f(t_list[i]) * weight_list[i]                            # performing sum over w(t_i) * f(t_i) where t_i is in [a,b]
+        sum += func(t_list[i]) * weight_list[i]                            # performing sum over w(t_i) * f(t_i) where t_i is in [a,b]
 
-    return sum * dxdt
+    return sum * ((b - a)/2)
 
 #----------------------------------------------------------------------------------------------------
 #Differential equation function set
