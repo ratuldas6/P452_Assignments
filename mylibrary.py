@@ -473,7 +473,7 @@ def conjugate_gradient(A, b, x0, tol=10**(-4), max_iter=100):
     return x
 
 
-def conjugate_fly(matrix, b, x0, tol=10**(-6), max_iter=100):
+def conjugate_on_fly(matrix, b, x0, tol=10**(-6), max_iter=100):
     """
     Parameters:
     matrix : an input matrix
@@ -531,7 +531,7 @@ def conjugate_inverse(matrix, b, x0, tol=10**(-6), max_iter=100):
         ei[i] = 1
         
         # Solve the equation Ax = e_i using Conjugate Gradient method
-        x, _, _ = conjugate_fly(matrix, ei, x0, tol, max_iter)
+        x, _, _ = conjugate_on_fly(matrix, ei, x0, tol, max_iter)
         
         # Append the solution (column of the inverse matrix) to the list
         inverse_columns.append(x)
@@ -705,6 +705,56 @@ def laguerre(coeff, alpha, prec): #roots by Laguerre's method
     roots.append(integerRound(-coeff[1]/coeff[0]))
     #extracting last root from remaining linear part of polynomial
     return roots
+
+def power_iter(A, num_iterations=1000, tol=1e-6):
+    n = A.shape[0]
+    x = np.random.rand(n)  # Random initial guess for the eigenvector
+
+    for _ in range(num_iterations):
+        x1 = np.dot(A, x)
+        eigenvalue = np.linalg.norm(x1)
+        x1 = x1 / eigenvalue  # Normalize the eigenvector estimate
+        if np.linalg.norm(x - x1) < tol:
+            break
+        x = x1
+
+    return eigenvalue, x
+
+def qr(A):
+    """
+    Parameters:
+    A : matrix for performing QR factorization using Gram-Scmidt orthogonalization
+    
+    Returns:
+    Q : matrix Q for QR
+    R : matrix R for QR
+    """
+    m, n = A.shape
+    Q = np.zeros((m, n))
+    R = np.zeros((n, n))
+
+    for j in range(n):
+        v = A[:, j]
+        for i in range(j):
+            R[i, j] = np.dot(Q[:, i], A[:, j])
+            v = v - R[i, j] * Q[:, i]
+        R[j, j] = np.linalg.norm(v)
+        Q[:, j] = v / R[j, j]
+
+    return Q, R
+
+def eigenvalue(A, iterations = 50000):
+    A_k = np.copy(A)
+    n = A.shape[0]
+    QQ = np.eye(n)
+    for k in range(iterations):
+        Q, R = qr(A_k)
+        A_k = R @ Q
+        ev = []
+    for i in range (0, A_k.shape[0]):
+        ev.append(A_k[i, i])
+    ev = np.array(ev)
+    return ev, A_k, QQ
 
 
 #----------------------------------------------------------------------------------------------------
