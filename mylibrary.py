@@ -3,6 +3,7 @@ import numpy as np
 #----------------------------------------------------------------------------------------------------
 #General function set
 def integerRound(x):
+    
     from math import floor, ceil
     a = floor(x)
     b = ceil(x)
@@ -26,11 +27,15 @@ def dec2Round(x): #rounds a number up to2 decimal places
     y = y/100
     return y
 
-def sumAP(a,d,n): #finds sum of an arithmetic progression upto n terms
+def sumAP(a, d, n): #finds sum of an arithmetic progression upto n terms
     """
+    Parameters:
     a : first term of AP
     d : difference between terms of AP
     n : number of terms in AP
+
+    Returns:
+    sum_terms : sum of all terms in AP
     """
     n = float(n)
     if n >= 1 and float(n)==int(n):
@@ -48,9 +53,13 @@ def sumAP(a,d,n): #finds sum of an arithmetic progression upto n terms
     
 def sumGP(a,r,n): #finds sum of a geometric progression upto n terms
     """
-    a : first term of AP
-    d : difference between terms of AP
-    n : number of terms in AP
+    Parameters:
+    a : first term of GP
+    d : difference between terms of GP
+    n : number of terms in GP
+
+    Returns:
+    sum_g : sum of all terms in GP
     """
     n = float(n)
     if n >= 1 and float(n)==int(n):
@@ -67,6 +76,15 @@ def sumGP(a,r,n): #finds sum of a geometric progression upto n terms
         return None
     
 def sumHP(a,d,n): #finds sum of a harmonic progression upto n terms
+    """
+    Parameters:
+    a : first term of HP
+    d : difference between terms of HP
+    n : number of terms in HP
+
+    Returns:
+    sum_h : sum of all terms in HP
+    """
     n = float(n)
     if n >= 1 and float(n)==int(n):
         n = int(n)
@@ -84,15 +102,27 @@ def sumHP(a,d,n): #finds sum of a harmonic progression upto n terms
         return None
     
 def derivative(f, n, x, h=1e-3): #derivative finder
+    """
+    Parameters:
+    f : function to find derivative for
+    n : decides between 1st or 2nd order derivative ('1' for 1st, '2' for second)
+    x : value of function to find derivative at
+    h : tolerance
+
+    Returns:
+    d1f : returns value of 1st order derivative
+    d2f : returns value of 2nd order derivative
+    """
+
     #n decides 1st or 2nd order derivative of f(x)
-    if int(n)==1:   #at x; h is the tolerance value
+    if int(n)==1:
         d1f = round((f(x+h)-f(x))/h,2)
         return d1f
     elif int(n)==2:
         d2f = round((f(x+h)+f(x-h)-2*f(x))/(h**2),2)
         return d2f
 
-def dfdx_sym(P, n, x, dx = 10**(-6)):                                   # symmetric derivative of Legendre polynomials
+def dfdx_sym(P, n, x, dx = 10**(-6)):   # symmetric derivative of Legendre polynomials
     return (P(n, x + dx) - P(n, x - dx))/(2 * dx)
 
 def P(n, x):
@@ -119,6 +149,13 @@ def showConvergenceTable(steps, values):
 def displayMatrix(matrix): #display given matrix
     for row in matrix:
         print(row)
+
+def is_symmetric(M):
+    for i in range(0,len(M)):
+        for j in range(0,len(M)):
+            if M[i][j] != M[j][i]:
+                return False
+    return True
         
 def storeInvMatrix(matrix): #display inverse GJ eliminated matrix without the identity in the first half
     r = len(matrix)
@@ -135,35 +172,6 @@ def transpose(A):
         for j in range(len(A[0])):
             A_T[j][i] = A[i][j]
     return A_T               
-        
-def applyGJ(A,B): #function to apply GJ elim
-    for k in range(len(B)):
-        #rows are pivotted
-        if abs(A[k][k]) < 1.0e-6:
-            #defining upper limit for element = 0
-            for i in range(k+1, len(B)): 
-                if abs(A[i][k]) > abs(A[k][k]):
-                    #swap check
-                    for j in range(k, len(B)):
-                        #obtaining swapped rows
-                        A[k][j], A[i][j] = A[i][j], A[k][j] 
-                    B[k], B[i] = B[i], B[k] 
-                    break
-        A_kk = A[k][k]
-        if A_kk == 0:        
-            print("No distinct solution was found for this system of equations")
-            return
-        for j in range(k, len(B)): #column index of row is pivotted
-            A[k][j] /= A_kk         #pivot row division for row ech form
-        B[k] /= A_kk
-        for i in range(len(B)):    #changed rows assigned new indices
-            if i == k or A[i][k] == 0: continue
-            factor = A[i][k]
-            for j in range(k, len(B)): 
-                #columns for subtraction assigned indices
-                A[i][j] -= factor*A[k][j]
-            B[i] -= factor * B[k]
-    return B
 
 def productMatrix(B,A): #finds product of two matrices
     try:               
@@ -249,162 +257,6 @@ def inverseMatrix(A):
 #----------------------------------------------------------------------------------------------------
 #Advanced matrix function set
 
-def swapRows(M, row_old, row_new, columns):
-    #to swap rows, wherever needed
-    tmp = []
-    for i in range (0, int(columns)):
-        tmp.append(M[int(row_old)][i])
-        M[int(row_old)][i] = M[int(row_new)][i]
-        M[int(row_new)][i] = tmp[i]
-        
-def unSwap(A,B,A_orig):
-    #to undo swapping from inversion
-    N = len(A)
-    fix_list = []
-    B_fixed = []
-    
-    for i in range(N):
-        for j in range(N):
-            if A[i]==A_orig[j]:
-                fix_list.append(j)
-    
-    for elem in fix_list:
-        B_fixed.append(B[elem])
-        
-    B = B_fixed
-        
-def crout(A):
-    n = len(A)
-    L = [[0.0 for i in range(n)] for j in range(n)]
-    U = [[0.0 for i in range(n)] for j in range(n)]
-    
-    for i in range(n):
-        U[i][i] = 1
-        for j in range(i, n):
-            tmp1 = A[j][i] 
-            for k in range(i):
-                tmp1 -= L[j][k]*U[k][i]
-            L[j][i] = tmp1
-        for j in range(i+1, n):
-            tmp2 = A[i][j]
-            for k in range(i):
-                tmp2 -= L[i][k]*U[k][j]
-            U[i][j] = tmp2/L[i][i]
-    return (L, U)
-
-def doolittle(A):
-    n = len(A)
-    L = [[0.0 for i in range(n)] for j in range(n)]
-    U = [[0.0 for i in range(n)] for j in range(n)]
-    
-    for z in range(n):
-        L[z][z] = 1
-        f1 = 0
-        f2 = 0
-        f3 = 0
-        for p in range(z):
-            f1 = f1 + L[z][p]*U[p][z]
-        U[z][z] = (A[z][z] - f1)
-        for i in range(z+1, n):
-            for p in range(z):
-                f2 = f2 + L[z][p]*U[p][i]
-            U[z][i] = (A[z][i] - f2)
-        for k in range(z+1, n):
-            for p in range(z):
-                f3 = f3 + L[k][p]*U[p][z]
-            L[k][z] = (A[k][z] - f3)/U[z][z]
-    return (L, U)
-
-def forwardSolve(L, b): #solves L.y = b
-    y = [0 for i in range(len(b))]
-    for i in range(len(b)):
-        sumj = 0
-        for j in range(i):
-            sumj = sumj + L[i][j]*y[j]
-        y[i] = (b[i] -sumj)/L[i][i]
-    return y
-
-def backwardSolve(U, y): #solves U.x = y
-    n = len(y)
-    x = [0 for i in range(len(y))]
-    for i in range(n-1, -1, -1):
-        sumj = 0
-        for j in range(i+1, n):
-            sumj = sumj + U[i][j] * x[j]
-        x[i] = (y[i] - sumj)/U[i][i]
-    return x 
-
-def partPivot(M, m, r, c):
-    #to get partially pivotted matrix for LU decomp
-    global n, swaps
-    n = 0
-    swaps = 0
-    pivot = M[int(m)][int(m)]
-    for i in range (int(r)):         
-        if pivot < M[int(i)][int(m)]:
-            #same-column elements are checked
-            pivot = M[int(i)][int(m)]
-            n += 1
-            swaps = i
-    if swaps != 0: #swap if allowed
-        swapRows(M, m, swaps, c)
-    if int(pivot) == 0:
-        print ("No unique solution")
-        return None
-
-def solveLU(A, b, method):
-    if method==1:
-        L, U = crout(A)
-    elif method==2:
-        L, U = doolittle(A)
-    y = forwardSolve(L, b)
-    x = backwardSolve(U, y)
-    return x
-
-def LU_inverse(M):
-    #to find inverse of matrix using LU decomposition
-    M_orig = [[M[j][i] for i in range(len(M))] for j in range(len(M))]
-    
-    I = [[0.00 for i in range(len(M))] for j in range(len(M))] 
-    for i in range(len(M)):
-        for j in range(len(M)):
-            #creates an identity matrix
-            I[j][j] = 1.00
-
-    if M[1][1] == 0 and M[0][1] != 0:
-        #swaps rows of first submatrices to prevent det=0
-        swapRows(M, 0, 1, 4)
-
-    partPivot(M, 0, len(M), len(M[0]))
-    L_i, U_i = doolittle(M)
-    
-    y = [[0 for c in range(len(I))] for r in range(len(I))]
-    for i in range(len(I)):
-        for k in range (len(I[0])):
-            y[i][k] = I[i][k]
-            for j in range(i):
-                y[i][k]=y[i][k]-(L_i[i][j]*y[j][k])
-            y[i][k] = y[i][k]/L_i[i][i]
-            
-    n = len(y)
-    x = [[0,0,0,0] for r in range(len(I))]
-    if U_i[n-1][n-1] == 0: 
-        #check for diagonal elements = 0
-        raise ValueError
-    
-    for i in range(n-1, -1, -1):
-        for k in range (len(I[0])): 
-            x[i][k] = y[i][k]
-            for j in range(i+1,n):
-                x[i][k] = x[i][k] -(U_i[i][j]*x[j][k])
-            x[i][k] = x[i][k]/U_i[i][i]
-    
-    x = transpose(x)
-    unSwap(M, x, M_orig)
-    x = transpose(x)
-    
-    return(x)
-
 def choleskydecomp(A):
     from math import sqrt
     #finds L using Cholesky's algorithm
@@ -432,16 +284,274 @@ def solveCholesky(L, U, b):
         sumj = 0
         for j in range(i+1, n):
             sumj += U[i][j]*x[j]
-        x[i] = dec2Round((y[i]-sumj)/U[i][i])
+        x[i] = (y[i]-sumj)/U[i][i]
     return x
+
+def gauss_seidel(a,b,tol=0.000001,iter_count=100):
+    L = []
+    v = []
+
+    for i in range(0,len(a)):
+        L.append(0)                                       # make two zero row matrices that has a guess solution of 0
+        v.append(0)
+
+    k = 0
+    e = 10
+
+    while e > tol:                                      # setting epsilon from tolerance
+        for i in range(0,len(a)):
+            sum1 = 0
+            sum2 = 0
+            for j in range(0,i): 
+                sum1 = sum1 + a[i-1][j-1]*L[j-1] 
+            for j in range(i+1,len(a)):
+                sum2 = sum2 + a[i-1][j-1]*L[j-1]
+            v[i-1] = L[i-1]                                 # storing the values of previous iteration
+            L[i-1] = (b[i-1] - sum1 - sum2)/a[i-1][i-1]
+        e = (abs(L[3])-abs(v[3]))/abs(L[3])               # calculation of epsilon after each iteration
+        k = k + 1
+        #print(L)
+        #print(k)
+        if k > iter_count:                                # stopping the loop after 30 iterations
+            return "The solution does not converge"
+            break
+    return L
+
+def create_augment(z,x):
+    for i in range(0,len(z)):
+        z[i].append(x[i])
+    return z
+
+def max_swap(z,a):
+  for i in range(a,len(z)): #for swapping(sorting) the rows with largest element and smallest element 
+    for j in range(i+1,len(z)):
+      if abs(z[i][a]) < abs(z[j][a]):
+        m = z[i]
+        z[i] = z[j]
+        z[j] = m
+      else:
+        break
+
+def norm_row(z,a):
+  x = []  #for creating All the diagonal elements 1
+  for i in range(0,len(z)+1):
+    c = z[a][i]
+    x.append(c/z[a][a])
+  z[a] = x
+
+def column(z,a):
+  for i in range(a+1,len(z)):
+    x = []
+    if abs(z[i][a]) > 0:  #for making a elements 0 that are below the diagonal element
+      for j in range(0,len(z[i])):
+        c = z[i][j] - z[a][j]*z[i][a]
+        x.append(c)
+      z[i] = x
+  
+def reverse_column(z,a): #for making a elements 0 that are above the diagonal elemnt
+  for i in range(a-1,-1,-1):
+    if abs(z[i][a]) > 0:
+      for j in range(len(z[i])-1,-1,-1):
+        c = z[i][j]-z[a][j]*z[i][a]
+        z[i][j] = c
+  return z
+
+
+def give_solutions(z):
+    for i in range(0,len(z)): # the output matrix is an augumented matrix 
+        print('for x',(i+1),end =" root is equal to ") # for printing the last element of each row.
+        print(z[i][len(z)])
+
+def gauss_jordan(A, b):
+    n = len(b)
+    # Augmenting the matrix A with vector b
+    Ab = np.hstack((A, np.expand_dims(b, axis=1)))
+    
+    # Forward elimination
+    for i in range(n):
+        # Partial pivoting for numerical stability
+        pivot_row = np.argmax(np.abs(Ab[i:, i])) + i
+        Ab[[i, pivot_row]] = Ab[[pivot_row, i]]
+        
+        pivot = Ab[i, i]
+        Ab[i] /= pivot
+        for j in range(i + 1, n):
+            factor = Ab[j, i]
+            Ab[j] -= factor * Ab[i]
+    
+    # Backward elimination
+    for i in range(n - 1, 0, -1):
+        for j in range(i - 1, -1, -1):
+            factor = Ab[j, i]
+            Ab[j] -= factor * Ab[i]
+    
+    return Ab[:, -1]
+
+def lu_factorization(A):
+    n = A.shape[0]
+    U = np.copy(A)
+    L = np.eye(n)
+    P = np.eye(n)
+
+    for i in range(n - 1):
+        pivot_row = np.argmax(np.abs(U[i:, i])) + i
+        if pivot_row != i:
+            U[[i, pivot_row]] = U[[pivot_row, i]]
+            P[[i, pivot_row]] = P[[pivot_row, i]]
+            if i >= 1:
+                L[[i, pivot_row]] = L[[pivot_row, i]]
+        for j in range(i + 1, n):
+            factor = U[j, i] / U[i, i]
+            L[j, i] = factor
+            U[j] -= factor * U[i]
+
+    return L, U, P
+
+def forward_substitution(L, b):
+    n = len(b)
+    y = np.zeros_like(b)
+    for i in range(n):
+        y[i] = b[i]
+        for j in range(i):
+            y[i] -= L[i, j] * y[j]
+    return y
+
+def backward_substitution(U, y):
+    n = len(y)
+    x = np.zeros_like(y)
+    for i in range(n - 1, -1, -1):
+        x[i] = y[i]
+        for j in range(i + 1, n):
+            x[i] -= U[i, j] * x[j]
+        x[i] /= U[i, i]
+    return x
+
+def calculate_norm(r):
+    """
+    Parameters:
+    r : an n-dimensional vector
+
+    Returns:
+    norm: the Euclidean norm of the vector r
+    """
+    norm_squared = sum(element ** 2 for element in r)
+    norm = norm_squared ** 0.5
+    return norm
+
+def conjugate_gradient(A, b, x0, tol=10**(-4), max_iter=100):
+    """
+    Parameters:
+    A : coefficient matrix with n rows and columns
+    b : an n-dimensional vector
+    x0 : initial guess vector
+    tol : tolerance
+    max_iter : max no. of iterations allowed
+
+    Returns:
+    x : solution vector 
+    """
+    x = np.array(x0, dtype=float)  # Initial guess
+    r = b - np.dot(A, x)  # Initial residual
+    p = r.copy()  # Initial search direction
+    r_r = np.dot(r, r)
+   
+    
+    for k in range(max_iter):
+        Ap = np.dot(A, p)
+        alpha = r_r / np.dot(p, Ap)
+        x += alpha * p
+        r -= alpha * Ap
+        
+        r_r_next = np.dot(r, r)
+        beta = r_r_next / r_r
+        p = r + beta * p
+        r_r = r_r_next
+        
+        if calculate_norm(r) < tol:
+            break
+        
+    return x
+
+
+def conjugate_fly(matrix, b, x0, tol=10**(-6), max_iter=100):
+    """
+    Parameters:
+    matrix : an input matrix
+    b : a vector
+    x0 : initial guess vector
+    tol : tolerance
+    max_iter : max no. of iterations allowed
+
+    Returns:
+    x : solution vector
+    residue_norms : final residue from calculation
+    iter_count : maximum number of iterations allowed
+    """
+    iter_count = 0
+    x = x0.copy()  # Initial guess
+    r = b - matrix(x)  # Initial residual
+    p = r.copy()  # Initial search direction
+    residue_norms = [calculate_norm(r)]  # List to store residue norms
+
+    for k in range(max_iter):
+        Ap = matrix(p)
+        alpha = np.dot(r, r) / np.dot(p, Ap)
+        x += alpha * p
+        r -= alpha * Ap
+        
+        beta = np.dot(r, r) / np.dot(r - alpha * Ap, r - alpha * Ap)
+        p = r - alpha * Ap + beta * p
+
+        residue_norm = calculate_norm(r)
+        residue_norms.append(residue_norm)
+        iter_count = iter_count +1
+        if residue_norm < tol:
+            break
+
+    return x, residue_norms, iter_count
+
+def conjugate_inverse(matrix, b, x0, tol=10**(-6), max_iter=100):
+    """
+    Parameters:
+    matrix : an input matrix
+    b : a vector
+    x0 : initial guess vector
+    tol : tolerance
+    max_iter : max no. of iterations allowed
+
+    Returns:
+    A_inv : inverse of the matrix
+    """
+    N = len(b)
+    inverse_columns = []
+    
+    for i in range(N):
+        # Create the right-hand side vector for solving Ax = e_i
+        ei = np.zeros(N)
+        ei[i] = 1
+        
+        # Solve the equation Ax = e_i using Conjugate Gradient method
+        x, _, _ = conjugate_fly(matrix, ei, x0, tol, max_iter)
+        
+        # Append the solution (column of the inverse matrix) to the list
+        inverse_columns.append(x)
+    
+    # Stack the columns of the inverse matrix horizontally to form the complete inverse matrix
+    A_inv = np.column_stack(np.round(inverse_columns,4))
+    return A_inv
 
 #----------------------------------------------------------------------------------------------------
 #Root-finding function set
 def bracket(func, a, b): #defines the bracket
     """
+    Parameters:
     func : function in question
     a : lower limit of interval
     b : upper limit of interval
+
+    Returns:
+    a : 'a' after adjustment
+    b : 'b' after adjustment
     """
     beta = 0.05
     i = 0 #number of iterations
@@ -463,7 +573,7 @@ def bracket(func, a, b): #defines the bracket
     else:
         return a, b
 
-def divideSyn(coeff,guess): #synthetic division function
+def divideSyn(coeff, guess): #synthetic division function
     ans = []   #coefficients of Q(x)
     temp = []  #creating the matrix/addend to be added
     temp.append(0)
