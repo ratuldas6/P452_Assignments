@@ -935,3 +935,99 @@ def RK4(h, x, x_lim, y, func): #code for Runge-Kutta method
         e = "Please keep the upper bound for x higher than the lower bound"
         return e
     
+#----------------------------------------------------------------------------------------------------
+#Least-square fit function set
+
+def poly_basis(x):
+    return np.array([np.ones_like(x), x**1, x**2, x**3])
+
+def cheby_basis(x):
+    return np.array([np.ones_like(x), 2*x - 1, 8*(x**2)-8*x+1, 32*(x**3)-48*(x**2)+18*x-1])
+
+def poly_fit(xlist, ylist, basis):
+    avg = 0
+    for x in (ylist):
+        avg += x
+    avg = avg/(xlist.shape)
+    lhs = basis(xlist) @ basis(xlist).T
+    rhs = basis(xlist) @ ylist.T
+    par = np.linalg.inv(lhs)@rhs
+    return par, np.linalg.cond(lhs)
+
+#----------------------------------------------------------------------------------------------------
+#Random number function set
+
+def linear_congruential_gen(a=587982351, c=54312, m = 2**32, n=10):
+    """
+    Parameters:
+    a : seed value
+    c : constant to go along with seed value
+    m : period parameter
+    n : no. of random nos. required
+    
+    output : a 1-d array containing the lower and the upper bound of the random numbers generated.
+    """
+    x0 = 123
+    arr = np.zeros((n))
+    arr[0] = x0
+
+    for i in range (1, n):
+        arr[i] = ((a*arr[i-1] + c)%m)
+
+    output = arr/m
+
+    return output
+
+def monte_carlo_lcg(func, a, b, step, lc_a = 1103515245, lc_c = 12345, lc_m = 2**32):
+    x = np.array(linear_congruential_gen(a = lc_a, c = lc_c, m = lc_m, n = step))
+    x = a + (b-a)*x
+    my_func = np.vectorize(func)
+    y = my_func(x)
+    return (b-a)*(np.sum(y))/step
+
+class MLCG:
+    def __init__(self, seed = 30):
+        self.state = seed
+
+    def rand(self, coeff = 979, multiplier = 32311):
+        self.state = (coeff * self.state) % multiplier
+        return (self.state)/multiplier
+    
+    def rand_range(self, a= 0, b= 1): 
+        return (b - a) * self.rand() + a
+    
+    def rand_array(self, array_size):
+        return np.array([self.rand() for _ in range(array_size)])
+    
+    def rand_range_array(self, a, b, array_size):
+        return np.array([self.rand_range(a, b) for _ in range(array_size)])
+
+def mc_importance_sampling(imp_samples, int_func, pd_func):
+    int_sum = 0
+    ind_val_list = []
+    for val in imp_samples:
+        ind_val = int_func(val)/pd_func(val)
+        int_sum += ind_val
+        ind_val_list.append(ind_val)
+
+    mean = int_sum/ len(imp_samples)
+    variance = (sum([(val - mean)**2 for val in ind_val_list])/len(imp_samples)) ** 0.5
+    return mean, variance
+
+def inv_transform_sampling(a, b, N, inverse_trans_func):
+    mlcg = MLCG()
+    return inverse_trans_func(mlcg.rand_range_array(a, b, N))
+
+def accept_reject_sampling(sample_size, low_lim, up_lim, target_dist, samp_dist):
+    sample_array = []
+    mlcg = MLCG()
+
+    k = 0
+
+    while len(sample_array) < sample_size:        
+        x = mlcg.rand_range(low_lim, up_lim)
+        u = mlcg.rand_range(low_lim, up_lim)
+        if u <= target_dist(x)/((1/3) * samp_dist(x)):
+            sample_array.append(x)
+        
+    return np.array(sample_array)
